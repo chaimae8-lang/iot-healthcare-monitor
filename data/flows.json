@@ -1,0 +1,115 @@
+[
+    {
+        "id": "d87b79adc0e4a65e",
+        "type": "tab",
+        "label": "Flux 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "fbc39bebd3fc8293",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": 8086,
+        "protocol": "http",
+        "database": "database",
+        "name": "InfluxDB_FSO",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://influxdb:8086",
+        "timeout": 10,
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "627d01e02a5fa48b",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "mosquitto",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "mqtt-in",
+        "type": "mqtt in",
+        "z": "d87b79adc0e4a65e",
+        "name": "Données Patients",
+        "topic": "patients/+/data",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "627d01e02a5fa48b",
+        "nl": false,
+        "rap": false,
+        "rh": "0",
+        "inputs": 0,
+        "x": 120,
+        "y": 200,
+        "wires": [
+            [
+                "function-alerts"
+            ]
+        ]
+    },
+    {
+        "id": "function-alerts",
+        "type": "function",
+        "z": "d87b79adc0e4a65e",
+        "name": "Classification Alertes",
+        "func": "var data = msg.payload;\n\n// Fonction de classification des alertes\nfunction classify(value, normalMin, normalMax, critMin, critMax){\n    if(value < critMin || value > critMax){ return 'Critique'; }\n    if(value < normalMin || value > normalMax){ return 'Attention'; }\n    return 'Normal';\n}\n\n// Calcul des alertes individuelles\nvar alertBpm = classify(data.bpm, 60, 100, 50, 120);\nvar alertTemp = classify(data.temperature, 36.5, 37.5, 36, 38.5);\nvar alertSpo2 = classify(data.spo2, 95, 100, 92, 100);\nvar alertTension = classify(data.systolic, 110, 130, 90, 160);\n\n// Détermination du statut global du patient\nvar globalStatus = 'Normal';\nif(alertBpm === 'Critique' || alertTemp === 'Critique' || alertSpo2 === 'Critique' || alertTension === 'Critique') {\n    globalStatus = 'Critique';\n} else if(alertBpm === 'Attention' || alertTemp === 'Attention' || alertSpo2 === 'Attention' || alertTension === 'Attention') {\n    globalStatus = 'Attention';\n}\n\n// CONFIGURATION OFFICIELLE INFLUXDB v2\nmsg.measurement = \"sante_patients\";\nmsg.payload = {\n    bpm: Number(data.bpm),\n    temperature: Number(data.temperature),\n    spo2: Number(data.spo2),\n    systolic: Number(data.systolic),\n    diastolic: Number(data.diastolic)\n};\n\n// Injection des métadonnées sous forme de tags\nmsg.tags = {\n    patient_id: data.patient_id || \"Inconnu\",\n    statut_global: globalStatus,\n    alerte_bpm: alertBpm,\n    alerte_temp: alertTemp,\n    alerte_spo2: alertSpo2,\n    alerte_tension: alertTension\n};\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 200,
+        "wires": [
+            [
+                "influxdb-out"
+            ]
+        ]
+    },
+    {
+        "id": "influxdb-out",
+        "type": "influxdb out",
+        "z": "d87b79adc0e4a65e",
+        "influxdb": "fbc39bebd3fc8293",
+        "name": "Stockage InfluxDB",
+        "measurement": "",
+        "precision": "ms",
+        "retentionPolicy": "",
+        "database": "patients_data",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "fso",
+        "bucket": "patients_data",
+        "x": 640,
+        "y": 200,
+        "wires": []
+    }
+]

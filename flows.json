@@ -1,0 +1,57 @@
+[
+    {
+        "id": "mqtt-in",
+        "type": "mqtt in",
+        "z": "flow1",
+        "name": "Données Patients",
+        "topic": "patients/+/data",
+        "broker": "mqtt-broker",
+        "x": 200,
+        "y": 100,
+        "wires": [["function-alerts"]]
+    },
+    {
+        "id": "function-alerts",
+        "type": "function",
+        "z": "flow1",
+        "name": "Classification Alertes",
+        "func": "var data = JSON.parse(msg.payload);\n\n// Fonction de classification des alertes\nfunction classify(value, normalMin, normalMax, critMin, critMax){\n    if(value < critMin || value > critMax){ return 'Critique'; }\n    if(value < normalMin || value > normalMax){ return 'Attention'; }\n    return 'Normal';\n}\n\n// Calcul des alertes individuelles\nvar alertBpm = classify(data.bpm, 60, 100, 50, 120);\nvar alertTemp = classify(data.temperature, 36.5, 37.5, 36, 38.5);\nvar alertSpo2 = classify(data.spo2, 95, 100, 92, 100);\nvar alertTension = classify(data.systolic, 110, 130, 90, 160);\n\n// Détermination du statut global du patient\nvar globalStatus = 'Normal';\nif(alertBpm === 'Critique' || alertTemp === 'Critique' || alertSpo2 === 'Critique' || alertTension === 'Critique') {\n    globalStatus = 'Critique';\n} else if(alertBpm === 'Attention' || alertTemp === 'Attention' || alertSpo2 === 'Attention' || alertTension === 'Attention') {\n    globalStatus = 'Attention';\n}\n\n// FORMATAGE ADAPTÉ POUR INFLUXDB (Mesures numériques + Index textuels)\nmsg.measurement = \"sante_patients\";\nmsg.payload = {\n    fields: {\n        bpm: data.bpm,\n        temperature: data.temperature,\n        spo2: data.spo2,\n        systolic: data.systolic,\n        diastolic: data.diastolic\n    },\n    tags: {\n        patient_id: data.patient_id || \"Inconnu\",\n        statut_global: globalStatus,\n        alerte_bpm: alertBpm,\n        alerte_temp: alertTemp,\n        alerte_spo2: alertSpo2,\n        alerte_tension: alertTension\n\n    },\n    timestamp: Date.now()\n};\n\nreturn msg;",
+        "outputs": 1,
+        "x": 450,
+        "y": 100,
+        "wires": [["influxdb-out"]]
+    },
+    {
+        "id": "influxdb-out",
+        "type": "influxdb out",
+        "z": "flow1",
+        "influxdb": "influxdb-config",
+        "name": "Stockage InfluxDB",
+        "measurement": "",
+        "precision": "ms",
+        "retentionPolicy": "",
+        "database": "patients_data",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18FluxV20": "",
+        "org": "fso",
+        "bucket": "patients_data",
+        "x": 720,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "mqtt-broker",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "mosquitto",
+        "port": "1883"
+    },
+    {
+        "id": "influxdb-config",
+        "type": "influxdb2",
+        "url": "http://influxdb:8086",
+        "org": "fso",
+        "bucket": "patients_data",
+        "name": "InfluxDB_FSO"
+    }
+]
