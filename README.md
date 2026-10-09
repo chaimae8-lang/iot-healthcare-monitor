@@ -1,28 +1,28 @@
-"# ?? SystŠme de Surveillance Sanitaire Multi-Patients en Temps R‚el (IoMT)"
-""
-"Ce projet impl‚mente une plateforme IoT complŠte de t‚l‚surveillance m‚dicale en temps r‚el, permettant de suivre les constantes vitales de plusieurs patients simultan‚ment et de d‚tecter les anomalies cliniques critiques."
-""
-"## ?? Architecture Technique"
-"* **Orchestration & Isolation** : Docker Compose"
-"* **Simulation Multi-Agents** : Script Python 3 (bibliothŠque \`paho-mqtt\`) simulant des constantes r‚alistes (BPM, SpO2, Temp‚rature, Tension)"
-"* **Bus de Messages** : Broker MQTT Mosquitto (Protocole asynchrone l‚ger)"
-"* **Moteur de Traitement v‚nementiel** : Node-RED (Classification algorithmique des alertes avec un temps de traitement < 45ms)"
-"* **Historisation des Donn‚es** : InfluxDB v2 (Base de donn‚es orient‚e s‚ries temporelles - TSDB)"
-"* **Supervision M‚dicale** : Interface de visualisation unifi‚e avec Grafana"
-""
-"## ??? Lancement de l'Infrastructure"
-""
-"### 1. D‚marrer les conteneurs Docker"
-"\`\`\`bash"
-"docker compose up -d"
-"\`\`\`"
-""
-"### 2. Lancer le simulateur de patients"
-"\`\`\`bash"
-"pip install paho-mqtt"
-"python simulation.py"
-"\`\`\`"
-""
-"## ?? AccŠs aux Consoles"
-"* **Node-RED (Flux de classification)** : http://localhost:1880"
-"* **Grafana (Tableau de bord)** : http://localhost:3000 *(Identifiants : admin / admin123)*"
+# ğŸ¥ SystÃ¨me de Surveillance Sanitaire Multi-Patients en Temps RÃ©el (IoMT)
+
+Ce projet implÃ©mente une plateforme IoT complÃ¨te de tÃ©lÃ©surveillance mÃ©dicale en temps rÃ©el, permettant de suivre les constantes vitales de plusieurs patients simultanÃ©ment et de dÃ©tecter les anomalies cliniques critiques.
+
+## ğŸš€ Architecture Technique
+* **Orchestration & Isolation** : Docker Compose
+* **Simulation Multi-Agents** : Script Python 3 (bibliothÃ¨que `paho-mqtt`) simulant des constantes rÃ©alistes (BPM, SpO2, TempÃ©rature, Tension)
+* **Bus de Messages** : Broker MQTT Mosquitto (Protocole asynchrone lÃ©ger)
+* **Moteur de Traitement Ã‰vÃ©nementiel** : Node-RED (Classification algorithmique des alertes avec un temps de traitement < 45ms)
+* **Historisation des DonnÃ©es** : InfluxDB v2 (Base de donnÃ©es orientÃ©e sÃ©ries temporelles - TSDB)
+* **Supervision MÃ©dicale** : Interface de visualisation unifiÃ©e avec Grafana
+
+## ğŸ› ï¸ Lancement de l'Infrastructure
+
+### 1. DÃ©marrer les conteneurs Docker
+```bash
+docker compose up -d
+```
+
+### 2. Lancer le simulateur de patients
+```bash
+pip install paho-mqtt
+python simulation.py
+```
+
+## ğŸ“Š AccÃ¨s aux Consoles
+* **Node-RED (Flux de classification)** : http://localhost:1880
+* **Grafana (Tableau de bord)** : http://localhost:3000 *(Identifiants : admin / admin123)*
